@@ -9,5 +9,4 @@ public class Booking
 	public DateTime EndTime { get; set; }
 	public decimal TotalPrice { get; set; }
 	public ICollection<Service> Services { get; set; } = new List<Service>();
-
 }

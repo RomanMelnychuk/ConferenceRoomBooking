@@ -7,4 +7,5 @@ public class Service
     public decimal Price { get; set; }
 
     public ICollection<ConferenceRoom> Rooms { get; set; } = new List<ConferenceRoom>();
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }
