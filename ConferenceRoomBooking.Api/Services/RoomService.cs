@@ -36,6 +36,24 @@ public class RoomService : IRoomService
         return ToResponse(room);
     }
 
+    public async Task<List<RoomResponse>> FindAvailableAsync(AvailableRoomsQuery query)
+    {
+        var start = query.Date.ToDateTime(query.StartTime);
+        var end = query.Date.ToDateTime(query.EndTime);
+
+        BookingTimeRules.Validate(start, end);
+
+        var rooms = await _context.ConferenceRooms
+            .Include(r => r.Services)
+            .Where(r => r.Capacity >= query.Capacity)
+            // A room is free if none of its bookings overlaps the requested slot
+            .Where(r => !r.Bookings.Any(b => b.StartTime < end && start < b.EndTime))
+            .AsNoTracking()
+            .ToListAsync();
+
+        return rooms.Select(ToResponse).ToList();
+    }
+
     public async Task<RoomResponse> CreateAsync(RoomRequest request)
     {
         var services = await GetServicesByIdsAsync(request.ServiceIds);

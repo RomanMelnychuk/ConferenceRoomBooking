@@ -9,6 +9,10 @@ public interface IRoomService
     /// <exception cref="Exceptions.NotFoundException">Room does not exist.</exception>
     Task<RoomResponse> GetByIdAsync(int id);
 
+    /// <summary>Finds rooms that fit the capacity and are free for the whole time slot.</summary>
+    /// <exception cref="Exceptions.BadRequestException">Time slot breaks booking rules.</exception>
+    Task<List<RoomResponse>> FindAvailableAsync(AvailableRoomsQuery query);
+
     /// <exception cref="Exceptions.BadRequestException">Some service ids are not in the catalog.</exception>
     Task<RoomResponse> CreateAsync(RoomRequest request);
 

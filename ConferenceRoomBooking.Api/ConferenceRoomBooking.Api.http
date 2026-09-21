@@ -52,3 +52,12 @@ Content-Type: application/json
 
 ### Delete room (expect 204)
 DELETE {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/4
+
+### Search available rooms (expect Room A and Room B, Room C is too small)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-10-01&startTime=10:00&endTime=14:00&capacity=50
+
+### Search outside working hours (expect 400)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-10-01&startTime=05:00&endTime=08:00&capacity=10
+
+### Search in the past, date from the task example (expect 400)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2024-09-01&startTime=10:00&endTime=14:00&capacity=50

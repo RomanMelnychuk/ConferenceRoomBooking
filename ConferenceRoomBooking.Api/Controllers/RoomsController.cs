@@ -24,6 +24,15 @@ public class RoomsController : ControllerBase
         return Ok(await _roomService.GetAllAsync());
     }
 
+    /// <summary>Finds rooms that fit the capacity and are free for the whole time slot.</summary>
+    [HttpGet("available")]
+    [ProducesResponseType(typeof(List<RoomResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<RoomResponse>>> GetAvailable([FromQuery] AvailableRoomsQuery query)
+    {
+        return Ok(await _roomService.FindAvailableAsync(query));
+    }
+
     /// <summary>Returns a single room by id.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(RoomResponse), StatusCodes.Status200OK)]
