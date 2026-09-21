@@ -61,3 +61,86 @@ GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-10-0
 
 ### Search in the past, date from the task example (expect 400)
 GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2024-09-01&startTime=10:00&endTime=14:00&capacity=50
+
+### Book Room A 11:00-13:00 with Projector (expect 201, price 4800)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "startTime": "2026-10-01T11:00:00",
+  "durationHours": 2,
+  "serviceIds": [1]
+}
+
+### Overlapping booking (expect 409)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "startTime": "2026-10-01T12:00:00",
+  "durationHours": 1,
+  "serviceIds": []
+}
+
+### Adjacent booking right after, no overlap (expect 201, price 2300)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "startTime": "2026-10-01T13:00:00",
+  "durationHours": 1,
+  "serviceIds": []
+}
+
+### Crosses morning and standard tariff: Room C 08:00-10:00 (expect 201, price 2850)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 3,
+  "startTime": "2026-10-01T08:00:00",
+  "durationHours": 2,
+  "serviceIds": []
+}
+
+### Evening discount: Room B 18:00-20:00 with Wi-Fi and Sound (expect 201, price 6600)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 2,
+  "startTime": "2026-10-01T18:00:00",
+  "durationHours": 2,
+  "serviceIds": [2, 3]
+}
+
+### Search again: Room A is now busy 11-14 (expect only Room B)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-10-01&startTime=10:00&endTime=14:00&capacity=50
+
+### Service not available in the room (expect 400)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "startTime": "2026-10-02T10:00:00",
+  "durationHours": 1,
+  "serviceIds": [99]
+}
+
+### Booking past midnight (expect 400)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "startTime": "2026-10-02T22:00:00",
+  "durationHours": 2,
+  "serviceIds": []
+}
+
+### Delete a room that has bookings (expect 409)
+DELETE {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/1

@@ -24,7 +24,8 @@ public class PriceCalculator
         // Services are charged once per booking, not per hour
         var servicesPrice = services.Sum(s => s.Price);
 
-        return roomPrice + servicesPrice;
+        // Money is rounded to 2 decimals the usual way (0.005 -> 0.01)
+        return Math.Round(roomPrice + servicesPrice, 2, MidpointRounding.AwayFromZero);
     }
 
     // Returns the price multiplier for one hour of the day (0–23)
