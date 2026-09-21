@@ -1,4 +1,5 @@
 using ConferenceRoomBooking.Api.Data;
+using ConferenceRoomBooking.Api.Middleware;
 using ConferenceRoomBooking.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 

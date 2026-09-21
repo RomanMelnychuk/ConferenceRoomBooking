@@ -12,7 +12,7 @@ public class RoomRequest
     [Range(1, 1000)]
     public int Capacity { get; set; }
 
-    [Range(typeof(decimal), "0.01", "1000000")]
+    [Range(typeof(decimal), "0.01", "1000000", ParseLimitsInInvariantCulture = true, ConvertValueInInvariantCulture = true)]
     public decimal BasePricePerHour { get; set; }
 
     // Ids of services from the catalog that are available in this room
