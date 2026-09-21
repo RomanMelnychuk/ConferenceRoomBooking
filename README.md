@@ -125,6 +125,14 @@ Services are charged **once per booking**, not per hour. The total is rounded to
 
 Utilization = booked hours / available working hours (17 per day, 06:00–23:00) for the period.
 
+## Tests
+
+Unit tests for `PriceCalculator` (xUnit) cover every tariff zone, a booking that crosses tariff zones, one-time service fees, rounding and invalid input. The calculator does not depend on the database, so the tests need no setup.
+
+```bash
+dotnet test
+```
+
 ## Known limitations and future improvements
 
 - **Authentication and roles.** Room management endpoints are currently open to any client. Next step: JWT with an admin role for creating, editing and deleting rooms.
@@ -133,7 +141,7 @@ Utilization = booked hours / available working hours (17 per day, 06:00–23:00)
 - **Soft delete for rooms**, so rooms with a booking history can be archived instead of blocked from deletion.
 - **Configurable tariffs.** Tariff zones are defined in code; if the business needs to change them without redeploying, they can be moved to configuration or the database.
 - **Report aggregation in SQL** for large data volumes (the room report currently aggregates in memory).
-- **Unit tests** for `PriceCalculator` and `BookingTimeRules`.
+- **More tests:** unit tests for `BookingTimeRules` and integration tests for the API endpoints.
 - **Retry on concurrency conflicts.** Under heavy parallel load on the same room, a serializable transaction can be chosen as a deadlock victim; such requests could be retried automatically.
 - **Time zones.** All times are treated as local time of the venue; a multi-location setup would need explicit time zones.
 - **Naming.** The entity `Service` (an amenity like a projector) can be confused with the service layer; `Amenity` would be a clearer name.
@@ -152,4 +160,7 @@ ConferenceRoomBooking.Api/
 ├── Middleware/      Global exception handling
 ├── Migrations/      EF Core migrations
 └── ConferenceRoomBooking.Api.http   Request examples for all scenarios
+
+ConferenceRoomBooking.Tests/
+└── PriceCalculatorTests.cs   Unit tests for the pricing logic
 ```
