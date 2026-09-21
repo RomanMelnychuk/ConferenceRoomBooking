@@ -2,6 +2,7 @@ using ConferenceRoomBooking.Api.Data;
 using ConferenceRoomBooking.Api.Middleware;
 using ConferenceRoomBooking.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,20 @@ builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddSingleton<PriceCalculator>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+
+// Each client IP can make up to 100 requests per minute, so one client cannot overload the API
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
 
 var app = builder.Build();
 
@@ -38,6 +53,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseRateLimiter();
 
 app.UseHttpsRedirection();
 
