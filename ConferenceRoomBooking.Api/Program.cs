@@ -17,6 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddSingleton<PriceCalculator>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 var app = builder.Build();
 

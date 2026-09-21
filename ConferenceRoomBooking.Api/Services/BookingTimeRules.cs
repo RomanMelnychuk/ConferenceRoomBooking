@@ -5,8 +5,8 @@ namespace ConferenceRoomBooking.Api.Services;
 // Business rules for a booking time slot, shared by search and booking
 public static class BookingTimeRules
 {
-    private const int OpeningHour = 6;
-    private const int ClosingHour = 23;
+    public const int OpeningHour = 6;
+    public const int ClosingHour = 23;
 
     public static void Validate(DateTime start, DateTime end)
     {

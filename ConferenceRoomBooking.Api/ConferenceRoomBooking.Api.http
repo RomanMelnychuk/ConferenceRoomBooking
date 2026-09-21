@@ -144,3 +144,13 @@ Content-Type: application/json
 
 ### Delete a room that has bookings (expect 409)
 DELETE {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/1
+
+### Room report for October 2026 (expect A: 7100, B: 6600, C: 2850)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-10-01&to=2026-10-31
+
+### Service report for October 2026 (expect each service ordered once, Sound first by revenue)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/services?from=2026-10-01&to=2026-10-31
+
+### Invalid period: 'to' before 'from' (expect 400)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-10-31&to=2026-10-01
+
