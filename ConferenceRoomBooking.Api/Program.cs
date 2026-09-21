@@ -1,15 +1,14 @@
 using ConferenceRoomBooking.Api.Data;
 using ConferenceRoomBooking.Api.Middleware;
 using ConferenceRoomBooking.Api.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Services
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -24,6 +23,19 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Return the same ProblemDetails format as all other errors
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        await context.HttpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status429TooManyRequests,
+            Title = "Too many requests",
+            Detail = "Request limit exceeded. Please try again in a minute.",
+            Instance = context.HttpContext.Request.Path
+        }, cancellationToken);
+    };
+
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -36,13 +48,15 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+// Create the database if needed, apply migrations and fill it with initial data
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.Migrate();
     DbSeeder.Seed(context);
 }
 
-// Configure the HTTP request pipeline.
+// HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
