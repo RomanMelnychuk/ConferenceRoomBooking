@@ -1,5 +1,6 @@
 using ConferenceRoomBooking.Api.Data;
 using ConferenceRoomBooking.Api.Middleware;
+using ConferenceRoomBooking.Api.Security;
 using ConferenceRoomBooking.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Services
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<ApiKeySecuritySchemeTransformer>();
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

@@ -1,4 +1,8 @@
 @ConferenceRoomBooking.Api_HostAddress = http://localhost:5062
+@AdminApiKey = dev-admin-key-change-me
+
+# Run the requests from top to bottom on a fresh database:
+# some of them depend on data created by the previous ones.
 
 ### Get all rooms (expect 200)
 GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms
@@ -6,9 +10,21 @@ GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms
 ### Room not found (expect 404)
 GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/999
 
-### Create room (expect 201)
+### Create room without API key (expect 401)
 POST {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms
 Content-Type: application/json
+
+{
+  "name": "Room D",
+  "capacity": 20,
+  "basePricePerHour": 1000,
+  "serviceIds": [1, 2]
+}
+
+### Create room (expect 201, id 4 on a fresh database)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms
+Content-Type: application/json
+X-Api-Key: {{AdminApiKey}}
 
 {
   "name": "Room D",
@@ -20,6 +36,7 @@ Content-Type: application/json
 ### Invalid data (expect 400 with validation errors)
 POST {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms
 Content-Type: application/json
+X-Api-Key: {{AdminApiKey}}
 
 {
   "name": "",
@@ -31,6 +48,7 @@ Content-Type: application/json
 ### Unknown service (expect 400 "Services not found: 99")
 POST {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms
 Content-Type: application/json
+X-Api-Key: {{AdminApiKey}}
 
 {
   "name": "Room E",
@@ -42,6 +60,7 @@ Content-Type: application/json
 ### Update room: new price + add Sound, like in the task (expect 200)
 PUT {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/4
 Content-Type: application/json
+X-Api-Key: {{AdminApiKey}}
 
 {
   "name": "Room D",
@@ -52,12 +71,13 @@ Content-Type: application/json
 
 ### Delete room (expect 204)
 DELETE {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/4
+X-Api-Key: {{AdminApiKey}}
 
 ### Search available rooms (expect Room A and Room B, Room C is too small)
-GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-10-01&startTime=10:00&endTime=14:00&capacity=50
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-12-01&startTime=10:00&endTime=14:00&capacity=50
 
 ### Search outside working hours (expect 400)
-GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-10-01&startTime=05:00&endTime=08:00&capacity=10
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-12-01&startTime=05:00&endTime=08:00&capacity=10
 
 ### Search in the past, date from the task example (expect 400)
 GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2024-09-01&startTime=10:00&endTime=14:00&capacity=50
@@ -68,7 +88,7 @@ Content-Type: application/json
 
 {
   "roomId": 1,
-  "startTime": "2026-10-01T11:00:00",
+  "startTime": "2026-12-01T11:00:00",
   "durationHours": 2,
   "serviceIds": [1]
 }
@@ -79,7 +99,7 @@ Content-Type: application/json
 
 {
   "roomId": 1,
-  "startTime": "2026-10-01T12:00:00",
+  "startTime": "2026-12-01T12:00:00",
   "durationHours": 1,
   "serviceIds": []
 }
@@ -90,7 +110,7 @@ Content-Type: application/json
 
 {
   "roomId": 1,
-  "startTime": "2026-10-01T13:00:00",
+  "startTime": "2026-12-01T13:00:00",
   "durationHours": 1,
   "serviceIds": []
 }
@@ -101,7 +121,7 @@ Content-Type: application/json
 
 {
   "roomId": 3,
-  "startTime": "2026-10-01T08:00:00",
+  "startTime": "2026-12-01T08:00:00",
   "durationHours": 2,
   "serviceIds": []
 }
@@ -112,13 +132,16 @@ Content-Type: application/json
 
 {
   "roomId": 2,
-  "startTime": "2026-10-01T18:00:00",
+  "startTime": "2026-12-01T18:00:00",
   "durationHours": 2,
   "serviceIds": [2, 3]
 }
 
 ### Search again: Room A is now busy 11-14 (expect only Room B)
-GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-10-01&startTime=10:00&endTime=14:00&capacity=50
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/available?date=2026-12-01&startTime=10:00&endTime=14:00&capacity=50
+
+### Get booking by id (expect 200)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings/1
 
 ### Service not available in the room (expect 400)
 POST {{ConferenceRoomBooking.Api_HostAddress}}/api/bookings
@@ -126,7 +149,7 @@ Content-Type: application/json
 
 {
   "roomId": 1,
-  "startTime": "2026-10-02T10:00:00",
+  "startTime": "2026-12-02T10:00:00",
   "durationHours": 1,
   "serviceIds": [99]
 }
@@ -137,20 +160,26 @@ Content-Type: application/json
 
 {
   "roomId": 1,
-  "startTime": "2026-10-02T22:00:00",
+  "startTime": "2026-12-02T22:00:00",
   "durationHours": 2,
   "serviceIds": []
 }
 
 ### Delete a room that has bookings (expect 409)
 DELETE {{ConferenceRoomBooking.Api_HostAddress}}/api/rooms/1
+X-Api-Key: {{AdminApiKey}}
 
-### Room report for October 2026 (expect A: 7100, B: 6600, C: 2850)
-GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-10-01&to=2026-10-31
+### Room report without API key (expect 401)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-12-01&to=2026-12-31
 
-### Service report for October 2026 (expect each service ordered once, Sound first by revenue)
-GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/services?from=2026-10-01&to=2026-10-31
+### Room report for December 2026 (expect A: 7100, B: 6600, C: 2850)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-12-01&to=2026-12-31
+X-Api-Key: {{AdminApiKey}}
+
+### Service report for December 2026 (expect each service ordered once, Sound first by revenue)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/services?from=2026-12-01&to=2026-12-31
+X-Api-Key: {{AdminApiKey}}
 
 ### Invalid period: 'to' before 'from' (expect 400)
-GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-10-31&to=2026-10-01
-
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-12-31&to=2026-12-01
+X-Api-Key: {{AdminApiKey}}
