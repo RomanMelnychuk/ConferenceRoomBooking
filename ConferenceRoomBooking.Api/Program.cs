@@ -1,10 +1,10 @@
+using System.Threading.RateLimiting;
 using ConferenceRoomBooking.Api.Data;
 using ConferenceRoomBooking.Api.Middleware;
 using ConferenceRoomBooking.Api.Security;
 using ConferenceRoomBooking.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,12 +16,22 @@ builder.Services.AddOpenApi(options =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        // Retry automatically on short database failures: dropped connection, timeout, deadlock
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null)));
 
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddSingleton<PriceCalculator>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+
+// Reports whether the API is alive and can reach the database, for monitoring tools
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
 
 // Each client IP can make up to 100 requests per minute, so one client cannot overload the API
 builder.Services.AddRateLimiter(options =>
@@ -79,5 +89,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();

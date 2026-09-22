@@ -37,16 +37,27 @@ public class BookingService : IBookingService
 
         BookingTimeRules.Validate(start, end);
 
+        // Database retries are enabled, so the transaction runs inside the execution strategy:
+        // on a short failure the whole operation (check + insert) is repeated from scratch
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(() => CreateInTransactionAsync(request, start, end));
+    }
+
+    private async Task<BookingResponse> CreateInTransactionAsync(BookingRequest request, DateTime start, DateTime end)
+    {
+        // Forget entities left from a failed previous attempt, so a retry does not insert twice
+        _context.ChangeTracker.Clear();
+
+        // Serializable isolation makes "check the slot is free" and "insert the booking"
+        // one atomic operation, so two parallel requests cannot book the same slot
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
         var room = await _context.ConferenceRooms
             .Include(r => r.Services)
             .FirstOrDefaultAsync(r => r.Id == request.RoomId)
             ?? throw new NotFoundException($"Room with id {request.RoomId} was not found.");
 
         var selectedServices = GetSelectedServices(room, request.ServiceIds);
-
-        // Serializable isolation makes "check the slot is free" and "insert the booking"
-        // one atomic operation, so two parallel requests cannot book the same slot
-        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
         var isTaken = await _context.Bookings
             .AnyAsync(b => b.RoomId == room.Id && b.StartTime < end && start < b.EndTime);
