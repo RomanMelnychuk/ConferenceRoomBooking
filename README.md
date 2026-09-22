@@ -174,7 +174,10 @@ Utilization = booked hours / available working hours (17 per day, 06:00–23:00)
 
 ## Tests
 
-Unit tests for `PriceCalculator` (xUnit) cover every tariff zone, a booking that crosses tariff zones, one-time service fees, rounding and invalid input. The calculator does not depend on the database, so the tests need no setup.
+18 unit tests (xUnit) cover the two pillars of the business logic. Neither depends on the database, so the tests need no setup.
+
+- `PriceCalculator`: every tariff zone, a booking that crosses tariff zones, one-time service fees, rounding and invalid input.
+- `BookingTimeRules`: a valid slot, the whole working day, end before start, not whole hours, before opening, crossing midnight and the past.
 
 ```bash
 dotnet test
@@ -190,7 +193,7 @@ dotnet test
 - **Distributed rate limiting.** Limits are counted in memory of each instance; with several instances a shared store such as Redis is needed.
 - **Report aggregation in SQL** for large data volumes (the room report currently aggregates in memory).
 - **Pagination** for list endpoints and **API versioning** (`/api/v1`) as the API grows.
-- **More tests:** unit tests for `BookingTimeRules` and integration tests for the endpoints.
+- **Integration tests** for the endpoints and services with a test database (`WebApplicationFactory`), covering overlap checks, the API key and error handling.
 - **Time zones.** All times are treated as local time of the venue; a multi-location setup would need explicit time zones.
 - **Naming.** The entity `Service` (an amenity like a projector) can be confused with the service layer; `Amenity` would be a clearer name.
 - **Migrations on startup** are convenient for a demo; in production they would be applied as a separate deployment step.
@@ -211,5 +214,6 @@ ConferenceRoomBooking.Api/
 └── ConferenceRoomBooking.Api.http   Request examples for all scenarios
 
 ConferenceRoomBooking.Tests/
-└── PriceCalculatorTests.cs   Unit tests for the pricing logic
+├── PriceCalculatorTests.cs    Unit tests for the pricing logic
+└── BookingTimeRulesTests.cs   Unit tests for the booking time rules
 ```
