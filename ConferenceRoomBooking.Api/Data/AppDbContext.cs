@@ -29,5 +29,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Booking>()
             .Property(b => b.TotalPrice)
             .HasPrecision(18, 2);
+
+        // Speeds up the most frequent query: "does this room have a booking that overlaps this slot?"
+        modelBuilder.Entity<Booking>()
+            .HasIndex(b => new { b.RoomId, b.StartTime, b.EndTime });
     }
 }
