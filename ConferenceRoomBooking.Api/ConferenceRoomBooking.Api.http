@@ -183,3 +183,26 @@ X-Api-Key: {{AdminApiKey}}
 ### Invalid period: 'to' before 'from' (expect 400)
 GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/rooms?from=2026-12-31&to=2026-12-01
 X-Api-Key: {{AdminApiKey}}
+
+### Get services catalog (expect 200)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/services
+
+### Add a new service (expect 201)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/services
+Content-Type: application/json
+X-Api-Key: {{AdminApiKey}}
+
+{
+  "name": "Coffee break",
+  "price": 200
+}
+
+### Add a service that already exists (expect 409)
+POST {{ConferenceRoomBooking.Api_HostAddress}}/api/services
+Content-Type: application/json
+X-Api-Key: {{AdminApiKey}}
+
+{
+  "name": "Coffee break",
+  "price": 200
+}

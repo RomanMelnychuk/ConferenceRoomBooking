@@ -27,10 +27,3 @@ public class RoomResponse
     public decimal BasePricePerHour { get; set; }
     public List<ServiceResponse> Services { get; set; } = new();
 }
-
-public class ServiceResponse
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-}

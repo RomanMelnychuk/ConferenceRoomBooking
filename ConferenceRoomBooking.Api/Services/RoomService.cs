@@ -134,8 +134,6 @@ public class RoomService : IRoomService
         Name = room.Name,
         Capacity = room.Capacity,
         BasePricePerHour = room.BasePricePerHour,
-        Services = room.Services
-            .Select(s => new ServiceResponse { Id = s.Id, Name = s.Name, Price = s.Price })
-            .ToList()
+        Services = room.Services.Select(s => s.ToResponse()).ToList()
     };
 }

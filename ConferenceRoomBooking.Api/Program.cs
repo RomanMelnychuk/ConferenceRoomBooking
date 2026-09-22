@@ -28,6 +28,7 @@ builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddSingleton<PriceCalculator>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IServiceCatalogService, ServiceCatalogService>();
 
 // Reports whether the API is alive and can reach the database, for monitoring tools
 builder.Services.AddHealthChecks()

@@ -100,9 +100,7 @@ public class BookingService : IBookingService
         RoomName = booking.Room.Name,
         StartTime = booking.StartTime,
         EndTime = booking.EndTime,
-        Services = booking.Services
-            .Select(s => new ServiceResponse { Id = s.Id, Name = s.Name, Price = s.Price })
-            .ToList(),
+        Services = booking.Services.Select(s => s.ToResponse()).ToList(),
         TotalPrice = booking.TotalPrice
     };
 }
