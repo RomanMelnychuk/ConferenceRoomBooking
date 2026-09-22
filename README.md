@@ -66,6 +66,7 @@ Managing rooms and services and viewing reports require the admin API key in the
 | GET | `/api/bookings/{id}` | Public | One booking |
 | GET | `/api/reports/rooms?from=&to=` | Admin | Revenue and utilization per room |
 | GET | `/api/reports/services?from=&to=` | Admin | Popularity and revenue per service |
+| GET | `/api/reports/tariff-zones?from=&to=` | Admin | Booked hours and their share per tariff zone |
 | GET | `/health` | Public | `Healthy` / `Unhealthy`, including a database check |
 
 > **Dates must be in the future.** The example in the task uses 2024-09-01, which the API rejects with 400 because booking in the past is not allowed. Use any future date, e.g. `2026-12-01`.
@@ -167,8 +168,9 @@ In code the tariff zones are a data table in `PriceCalculator`. The first zone t
 |---|---|---|
 | `/api/reports/rooms` | Per room: number of bookings, booked hours, revenue, utilization % | Which rooms earn money and which stand idle — a basis for discounts or repurposing |
 | `/api/reports/services` | Per service: times ordered, revenue | Which services are worth investing in and which can be dropped |
+| `/api/reports/tariff-zones` | Per tariff zone (morning, standard, peak, evening): booked hours and their share | Whether the discounts actually attract clients and how busy the peak is — a basis for adjusting the multipliers |
 
-Utilization = booked hours / available working hours (17 per day, 06:00–23:00) for the period.
+Utilization = booked hours / available working hours (17 per day, 06:00–23:00) for the period. The tariff zone report uses the same zone table as the price calculation, so it can never disagree with the prices.
 
 ## Tests
 

@@ -37,4 +37,17 @@ public class ReportsController : ControllerBase
     {
         return Ok(await _reportService.GetServiceReportAsync(query));
     }
+
+    /// <summary>
+    /// Booked hours and their share for each tariff zone (morning, standard, peak, evening).
+    /// Shows whether the discounts attract clients and how busy the peak is. Requires the admin API key.
+    /// </summary>
+    [HttpGet("tariff-zones")]
+    [ProducesResponseType(typeof(List<TariffZoneReportItem>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<List<TariffZoneReportItem>>> GetTariffZoneReport([FromQuery] ReportPeriodQuery query)
+    {
+        return Ok(await _reportService.GetTariffZoneReportAsync(query));
+    }
 }

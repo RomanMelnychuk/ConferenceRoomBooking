@@ -11,4 +11,8 @@ public interface IReportService
     /// <summary>How often each service was ordered in the period and how much it earned.</summary>
     /// <exception cref="Exceptions.BadRequestException">Period is invalid.</exception>
     Task<List<ServiceReportItem>> GetServiceReportAsync(ReportPeriodQuery query);
+
+    /// <summary>How many booked hours fall into each tariff zone, to see whether discounts and the peak surcharge work.</summary>
+    /// <exception cref="Exceptions.BadRequestException">Period is invalid.</exception>
+    Task<List<TariffZoneReportItem>> GetTariffZoneReportAsync(ReportPeriodQuery query);
 }

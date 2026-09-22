@@ -206,3 +206,7 @@ X-Api-Key: {{AdminApiKey}}
   "name": "Coffee break",
   "price": 200
 }
+
+### Tariff zone report for December 2026 (on a fresh database after all requests above: Morning 1, Standard 2, Peak 2, Evening 2)
+GET {{ConferenceRoomBooking.Api_HostAddress}}/api/reports/tariff-zones?from=2026-12-01&to=2026-12-31
+X-Api-Key: {{AdminApiKey}}

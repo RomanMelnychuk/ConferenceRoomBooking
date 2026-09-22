@@ -34,3 +34,12 @@ public class ServiceReportItem
     public int TimesOrdered { get; set; }
     public decimal Revenue { get; set; }
 }
+
+public class TariffZoneReportItem
+{
+    public string TariffName { get; set; } = string.Empty;
+    public int BookedHours { get; set; }
+
+    /// <summary>Share of all booked hours in the period, in percent</summary>
+    public decimal SharePercent { get; set; }
+}

@@ -8,11 +8,15 @@ public class PriceCalculator
     // Peak goes first because it lies inside standard hours and must override them.
     private static readonly TariffZone[] TariffZones =
     {
-        new(FromHour: 12, ToHour: 14, Multiplier: 1.15m), // peak: +15%
-        new(FromHour: 6, ToHour: 9, Multiplier: 0.9m),    // morning: -10%
-        new(FromHour: 9, ToHour: 18, Multiplier: 1.0m),   // standard
-        new(FromHour: 18, ToHour: 23, Multiplier: 0.8m)   // evening: -20%
+        new(Name: "Peak", FromHour: 12, ToHour: 14, Multiplier: 1.15m),    // +15%
+        new(Name: "Morning", FromHour: 6, ToHour: 9, Multiplier: 0.9m),    // -10%
+        new(Name: "Standard", FromHour: 9, ToHour: 18, Multiplier: 1.0m),
+        new(Name: "Evening", FromHour: 18, ToHour: 23, Multiplier: 0.8m)   // -20%
     };
+
+    /// <summary>Names of all tariff zones in the order they occur during the day.</summary>
+    public IReadOnlyList<string> TariffNames { get; } =
+        TariffZones.OrderBy(z => z.FromHour).Select(z => z.Name).ToList();
 
     /// <summary>
     /// Calculates the total booking price: room price hour by hour
@@ -28,7 +32,7 @@ public class PriceCalculator
         // Walk through the booking one hour at a time
         for (var hour = startTime; hour < endTime; hour = hour.AddHours(1))
         {
-            roomPrice += basePricePerHour * GetHourMultiplier(hour.Hour);
+            roomPrice += basePricePerHour * FindZone(hour.Hour).Multiplier;
         }
 
         // Services are charged once per booking, not per hour
@@ -38,16 +42,15 @@ public class PriceCalculator
         return Math.Round(roomPrice + servicesPrice, 2, MidpointRounding.AwayFromZero);
     }
 
-    // Returns the price multiplier for one hour of the day (0–23)
-    private static decimal GetHourMultiplier(int hour)
-    {
-        var zone = TariffZones.FirstOrDefault(z => z.Contains(hour))
-            ?? throw new ArgumentOutOfRangeException(nameof(hour), "Booking is not allowed between 23:00 and 06:00");
+    /// <summary>Returns the name of the tariff zone that the given hour of the day (0–23) belongs to.</summary>
+    public string GetTariffName(int hour) => FindZone(hour).Name;
 
-        return zone.Multiplier;
-    }
+    // The first zone that contains the hour wins
+    private static TariffZone FindZone(int hour) =>
+        TariffZones.FirstOrDefault(z => z.Contains(hour))
+        ?? throw new ArgumentOutOfRangeException(nameof(hour), "Booking is not allowed between 23:00 and 06:00");
 
-    private record TariffZone(int FromHour, int ToHour, decimal Multiplier)
+    private record TariffZone(string Name, int FromHour, int ToHour, decimal Multiplier)
     {
         public bool Contains(int hour) => hour >= FromHour && hour < ToHour;
     }

@@ -11,10 +11,12 @@ public class ReportService : IReportService
     private const int WorkingHoursPerDay = BookingTimeRules.ClosingHour - BookingTimeRules.OpeningHour;
 
     private readonly AppDbContext _context;
+    private readonly PriceCalculator _priceCalculator;
 
-    public ReportService(AppDbContext context)
+    public ReportService(AppDbContext context, PriceCalculator priceCalculator)
     {
         _context = context;
+        _priceCalculator = priceCalculator;
     }
 
     public async Task<List<RoomReportItem>> GetRoomReportAsync(ReportPeriodQuery query)
@@ -77,6 +79,39 @@ public class ReportService : IReportService
             })
             .OrderByDescending(s => s.TimesOrdered)
             .ThenByDescending(s => s.Revenue)
+            .ToList();
+    }
+
+    public async Task<List<TariffZoneReportItem>> GetTariffZoneReportAsync(ReportPeriodQuery query)
+    {
+        var (from, to) = GetPeriodBounds(query);
+
+        var bookings = await _context.Bookings
+            .Where(b => b.StartTime >= from && b.StartTime < to)
+            .Select(b => new { b.StartTime, b.EndTime })
+            .ToListAsync();
+
+        // Start every zone at zero, so zones nobody books are visible in the report too
+        var hoursByTariff = _priceCalculator.TariffNames.ToDictionary(name => name, _ => 0);
+
+        // Count every booked hour in the tariff zone it belongs to
+        foreach (var booking in bookings)
+        {
+            for (var hour = booking.StartTime; hour < booking.EndTime; hour = hour.AddHours(1))
+            {
+                hoursByTariff[_priceCalculator.GetTariffName(hour.Hour)]++;
+            }
+        }
+
+        var totalHours = hoursByTariff.Values.Sum();
+
+        return hoursByTariff
+            .Select(pair => new TariffZoneReportItem
+            {
+                TariffName = pair.Key,
+                BookedHours = pair.Value,
+                SharePercent = totalHours == 0 ? 0 : Math.Round(100m * pair.Value / totalHours, 1)
+            })
             .ToList();
     }
 
